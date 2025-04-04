@@ -290,4 +290,4 @@ def simple():
 
 if __name__ == '__main__':
     logger.info("Starting Flask application")
-    app.run(debug=True, use_reloader=True, port=8080, host='localhost') 
+    app.run(debug=True, use_reloader=True, port=8081, host='localhost') 
