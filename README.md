@@ -15,8 +15,8 @@
 
 1. 克隆仓库
 ```bash
-git clone https://github.com/[your-username]/global-stock-analysis.git
-cd global-stock-analysis
+git clone https://github.com/[your-username]/lianghua.git
+cd lianghua
 ```
 
 2. 创建虚拟环境
