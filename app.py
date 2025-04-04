@@ -659,6 +659,14 @@ def query_stock():
         logger.exception("Error in query_stock route")
         return render_template('index.html', error=str(e), stocks=get_stock_list())
 
+# 修改图片保存路径
+def save_plot_to_base64(fig):
+    """将matplotlib图表保存为base64字符串"""
+    img_stream = BytesIO()
+    fig.savefig(img_stream, format='png', bbox_inches='tight')
+    img_stream.seek(0)
+    return base64.b64encode(img_stream.getvalue()).decode()
+
 @app.route('/chan_analysis', methods=['POST'])
 def chan_analysis():
     """处理缠论分析请求"""
@@ -801,9 +809,8 @@ def chan_analysis():
             ax1.grid(True)
             plt.tight_layout()
             
-            # 保存图表
-            img_path = os.path.join(static_dir, 'images', 'analysis.png')
-            plt.savefig(img_path)
+            # 保存图表为base64字符串而不是文件
+            img_base64 = save_plot_to_base64(plt)
             plt.close()
             
             # 准备显示的数据
@@ -816,7 +823,7 @@ def chan_analysis():
                                   stock_name=stock_name,
                                   stock_code=stock_code,
                                   stats=stats,
-                                  chart_data=img_path)
+                                  chart_data=img_base64)
         
         except Exception as e:
             logger.error(f"执行缠论分析时出错: {str(e)}", exc_info=True)
@@ -839,5 +846,5 @@ if __name__ == '__main__':
             logging.warning(f"Port {port} is in use, trying next port...")
             port += 1
 
-# 添加Vercel处理程序
+# Vercel环境设置
 app.debug = False  # 生产环境禁用调试模式 
