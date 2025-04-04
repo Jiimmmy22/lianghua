@@ -1,4 +1,8 @@
 flask==3.0.2
-pandas==2.2.1
-matplotlib==3.8.3
-baostock==0.8.8 
+pandas==2.2.0
+yfinance==0.2.36
+matplotlib==3.8.2
+mplfinance==0.12.10b0
+numpy==1.26.4
+requests==2.31.0
+werkzeug==3.0.1 

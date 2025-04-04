@@ -3,7 +3,30 @@ __pycache__/
 *.py[cod]
 *$py.class
 .Python
+.env
+.venv
 env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Project specific
+data_cache/
+*.log
+*.csv
+static/images/*
+!static/images/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
 build/
 develop-eggs/
 dist/
@@ -17,21 +40,4 @@ sdist/
 var/
 *.egg-info/
 .installed.cfg
-*.egg
-
-# Virtual Environment
-venv/
-.env
-.venv
-ENV/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Project specific
-static/*.csv
-*.log
-.DS_Store 
+*.egg 

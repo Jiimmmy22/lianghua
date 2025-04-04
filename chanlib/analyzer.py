@@ -17,40 +17,45 @@ from .signals import add_trading_signals
 
 def analyze_chan(df, add_signals=True):
     """
-    执行完整的缠论分析
+    执行缠论分析
     
-    参数:
-        df: DataFrame, 包含OHLC数据的DataFrame
-        add_signals: bool, 是否添加买卖信号
+    Args:
+        df: DataFrame，至少包含 open, high, low, close 四列的股价数据
+        add_signals: bool，是否添加买卖信号，默认为True
         
-    返回:
-        包含分析结果的DataFrame
+    Returns:
+        processed_df: 经过缠论分析的DataFrame，添加了各种标记
     """
-    if df.empty:
-        return df
+    # 检查必要的列
+    required_columns = ['open', 'high', 'low', 'close']
+    for col in required_columns:
+        if col not in df.columns:
+            raise ValueError(f"输入数据必须包含列: {col}")
     
-    # 1. 预处理K线数据
+    # 1. K线预处理
     processed_df = preprocess_kline(df)
     
-    # 2. 找出分型点
-    fractal_df = find_fractal_point(processed_df)
+    # 2. 分型
+    processed_df = find_fractal_point(processed_df)
     
     # 3. 划分笔
-    stroke_df = find_strokes(fractal_df)
+    processed_df = find_strokes(processed_df)
     
     # 4. 划分线段
-    segment_df = find_segments(stroke_df)
+    processed_df = find_segments(processed_df)
     
     # 5. 识别中枢
-    hub_df = find_hubs(segment_df)
+    processed_df = find_hubs(processed_df)
     
-    # 6. 添加买卖信号
+    # 6. 添加买卖信号（如果需要）
     if add_signals:
-        result_df = add_trading_signals(hub_df)
-    else:
-        result_df = hub_df
+        try:
+            from chanlib.signals import add_trading_signals
+            processed_df = add_trading_signals(processed_df)
+        except Exception as e:
+            print(f"添加买卖信号时出错: {str(e)}")
     
-    return result_df
+    return processed_df
 
 def plot_chan_analysis(df, hubs_df=None):
     """

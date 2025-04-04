@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>全球股票数据查询系统</title>
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.bootcdn.net/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
     <style>
         .stock-section {
             margin-bottom: 20px;
@@ -29,12 +28,22 @@
         .nav-tabs {
             margin-bottom: 20px;
         }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .card-header {
+            background-color: #f1f8ff;
+            font-weight: bold;
+            border-bottom: 1px solid #dee2e6;
+        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center mb-4">全球股票数据查询系统</h1>
-        
+
         {% if error %}
         <div class="alert alert-danger">{{ error }}</div>
         {% endif %}
@@ -64,8 +73,9 @@
                                             <div class="form-text">
                                                 <ul class="list-unstyled">
                                                     <li>支持：A股代码（6位数）、港股代码（5位数或更少）、美股代码（如AAPL）</li>
-                                                    <li>支持指数代码（如000001上证指数，399001深证成指）</li>
-                                                    <li>支持ETF基金（如510050上证50ETF，510300沪深300ETF）</li>
+                                                    <li>指数代码：请在数字前添加"i"，如i000001（上证指数）、i399001（深证成指）</li>
+                                                    <li>ETF基金：请在数字前添加"e"，如e510050（上证50ETF）、e159915（创业板ETF）</li>
+                                                    <li><strong>提示：</strong>如果遇到"未找到股票数据"错误，请在代码前添加适当前缀或检查代码是否正确</li>
                                                 </ul>
                                             </div>
                                         </div>
