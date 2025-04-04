@@ -1,5 +1,10 @@
+from flask import Flask
 from app import app
 
-# Vercel需要handler函数
+# 配置matplotlib使用Agg后端
+import matplotlib
+matplotlib.use('Agg')
+
 def handler(request):
+    """Handle Vercel serverless function requests"""
     return app(request) 

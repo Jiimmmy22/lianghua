@@ -1,0 +1,24 @@
+# 忽略不必要的文件和目录
+.git
+.gitignore
+.env
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env/
+.venv/
+data_cache/
+sample_data/
+static/images/*
+!static/images/.gitkeep
+*.log
+.DS_Store
+Thumbs.db
+README.md
+tests/
+docs/ 
