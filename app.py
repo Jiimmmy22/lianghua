@@ -826,24 +826,18 @@ def chan_analysis():
         logger.error(f"处理分析请求出错: {str(e)}", exc_info=True)
         return render_template('index.html', error=f"处理请求出错: {str(e)}")
 
+# 修改主程序入口
 if __name__ == '__main__':
-    logger.info("Starting Flask application")
-    try:
-        # 尝试不同的端口，如果8087被占用则尝试8088，以此类推
-        port = 8087
-        max_port = 8095  # 最大尝试端口
-        while port <= max_port:
-            try:
-                app.run(host='0.0.0.0', port=port, debug=True)
-                break
-            except OSError as e:
-                if 'Address already in use' in str(e) and port < max_port:
-                    logger.warning(f"端口 {port} 已被占用，尝试端口 {port+1}")
-                    port += 1
-                else:
-                    raise
-        if port > max_port:
-            logger.error(f"所有端口(8087-{max_port})均被占用，请手动释放端口")
-    except Exception as e:
-        logger.exception("启动应用程序时出错")
-        print(f"启动失败: {str(e)}") 
+    port = 8087
+    while port <= 8095:
+        try:
+            app.run(host='0.0.0.0', port=port, debug=True)
+            break
+        except OSError as e:
+            if port == 8095:
+                raise e
+            logging.warning(f"Port {port} is in use, trying next port...")
+            port += 1
+
+# 添加Vercel处理程序
+app.debug = False  # 生产环境禁用调试模式 
