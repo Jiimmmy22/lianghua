@@ -3,12 +3,20 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime
 import logging
+import os
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__, template_folder='../templates', static_folder='../static')
+# 获取当前文件的目录
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# 获取项目根目录
+root_dir = os.path.dirname(current_dir)
+
+app = Flask(__name__, 
+    template_folder=os.path.join(root_dir, 'templates'),
+    static_folder=os.path.join(root_dir, 'static'))
 
 def get_stock_data(stock_code, start_date, end_date):
     """获取股票数据"""
