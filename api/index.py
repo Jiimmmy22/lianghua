@@ -1,21 +1,18 @@
-from flask import Flask, request
+from flask import Flask, Response
 from api.app import app
 
 def handler(request):
     """Handle Vercel serverless function requests"""
-    if request.method == "GET":
-        return app.send_static_file('index.html')
-    
-    with app.test_request_context(
-        method=request.method,
-        base_url=request.base_url,
-        path=request.path,
-        query_string=request.query_string,
-        data=request.get_data(),
-        headers=request.headers
-    ):
-        try:
+    try:
+        if request.method == "GET" and request.path == "/":
+            return app.send_static_file('index.html')
+            
+        with app.request_context(request):
             response = app.full_dispatch_request()
-            return response
-        except Exception as e:
-            return str(e), 500 
+            return Response(
+                response.get_data(),
+                status=response.status_code,
+                headers=dict(response.headers)
+            )
+    except Exception as e:
+        return str(e), 500 
