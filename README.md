@@ -1,67 +1,45 @@
-# 全球股票数据查询系统
+# 股票缠论分析系统
 
-基于Python Flask的全球股票数据查询和缠论分析系统。
+这是一个基于缠论理论的股票技术分析系统，提供了股票数据的分析和可视化功能。
 
 ## 功能特点
 
-- 支持A股、港股、美股的数据查询
-- 支持ETF基金数据查询
-- 集成缠论分析功能
-- K线图展示
-- 买卖点分析
-- 本地数据缓存
+- 股票数据获取与处理
+- 基于缠论理论的技术分析
+- 识别顶底分型、笔、线段等结构
+- 生成买卖信号
+- 交互式图表展示
+- 支持数据下载和原始图像查看
 
-## 安装说明
+## 安装与使用
 
-1. 克隆仓库
-```bash
-git clone https://github.com/[your-username]/lianghua.git
-cd lianghua
-```
+### 安装依赖
 
-2. 创建虚拟环境
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# 或
-.venv\Scripts\activate  # Windows
-```
-
-3. 安装依赖
 ```bash
 pip install -r requirements.txt
 ```
 
-## 使用方法
+### 运行应用
 
-1. 启动应用
 ```bash
 python app.py
 ```
 
-2. 打开浏览器访问
-```
-http://localhost:8087
-```
+运行后，在浏览器中访问 `http://localhost:8087` 即可使用。
 
-3. 输入股票代码和日期范围进行分析
+### 使用方法
 
-## 支持的股票代码格式
-
-- A股代码（6位数）：如 601318
-- 港股代码（5位数或更少）
-- 美股代码（如AAPL）
-- ETF基金：在数字前添加"e"，如e510050（上证50ETF）
+1. 在界面上输入股票代码（如：000001、600519等）
+2. 选择开始和结束日期
+3. 点击"分析"按钮查看结果
+4. 可以使用缩放功能或切换视图查看不同形式的图表
 
 ## 技术栈
 
-- Python 3.9+
-- Flask
-- Pandas
-- yfinance
-- matplotlib
-- mplfinance
+- 后端：Flask、pandas、numpy
+- 前端：JavaScript、ECharts
+- 数据分析：mplfinance、ta-lib
 
 ## 许可证
 
-MIT License 
+MIT 
