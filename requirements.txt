@@ -1,7 +1,6 @@
 flask==3.0.2
 pandas==2.2.0
 yfinance==0.2.36
-matplotlib==3.8.2
-numpy==1.26.4
 requests==2.31.0
-gunicorn==21.2.0 
+python-dateutil==2.8.2
+pytz==2024.1 

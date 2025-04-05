@@ -21,4 +21,14 @@ static/images/*
 Thumbs.db
 README.md
 tests/
-docs/ 
+docs/
+examples/
+chanlib/
+*.ipynb
+*.md
+*.txt
+!requirements.txt
+!vercel.json
+!api/index.py
+!api/app.py
+!templates/index.html 
