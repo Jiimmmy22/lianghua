@@ -1,11 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import yfinance as yf
 import pandas as pd
-import numpy as np
 from datetime import datetime
-import matplotlib.pyplot as plt
-from io import BytesIO
-import base64
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
@@ -26,7 +22,12 @@ def get_stock_data(stock_code, start_date, end_date):
         if df.empty:
             raise Exception("未找到股票数据")
             
-        return df, stock.info.get('longName', stock_code)
+        # 转换数据格式
+        df_dict = df.reset_index().to_dict('records')
+        for record in df_dict:
+            record['Date'] = record['Date'].strftime('%Y-%m-%d')
+            
+        return df_dict, stock.info.get('longName', stock_code)
     except Exception as e:
         raise Exception(f"获取股票数据失败: {str(e)}")
 
@@ -47,33 +48,16 @@ def analyze():
             raise ValueError("请填写完整的查询信息")
             
         # 获取股票数据
-        df, stock_name = get_stock_data(stock_code, start_date, end_date)
+        data, stock_name = get_stock_data(stock_code, start_date, end_date)
         
-        # 创建图表
-        plt.figure(figsize=(10, 6))
-        plt.plot(df.index, df['Close'], label='收盘价')
-        plt.title(f"{stock_name} ({stock_code})")
-        plt.xlabel('日期')
-        plt.ylabel('价格')
-        plt.legend()
-        plt.grid(True)
-        
-        # 转换图表为base64
-        img = BytesIO()
-        plt.savefig(img, format='png', bbox_inches='tight')
-        img.seek(0)
-        img_base64 = base64.b64encode(img.getvalue()).decode()
-        plt.close()
-        
-        # 准备数据
-        data = {
+        # 准备返回数据
+        response_data = {
             'stock_code': stock_code,
             'stock_name': stock_name,
-            'chart': img_base64,
-            'data': df.tail().to_dict('records')
+            'data': data
         }
         
-        return jsonify(data)
+        return jsonify(response_data)
         
     except Exception as e:
         return jsonify({'error': str(e)}), 400

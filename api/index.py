@@ -1,6 +1,3 @@
-import matplotlib
-matplotlib.use('Agg')
-
 from api.app import app
 
 def handler(request):
