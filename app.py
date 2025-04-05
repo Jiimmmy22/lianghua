@@ -710,26 +710,85 @@ def chan_analysis():
         # 转换日期为数值
         df['date_num'] = date2num(pd.to_datetime(df['date']).values)
         
-        # 准备OHLC数据
-        ohlc_data = []
-        for i, row in df.iterrows():
-            ohlc_data.append([row['date_num'], row['open'], row['high'], row['low'], row['close']])
-            
-        # 创建图表
-        fig = plt.figure(figsize=(15, 8))
-        ax1 = plt.subplot2grid((2, 1), (0, 0), rowspan=2, colspan=1)
-        
-        # 绘制K线图
-        candlestick_ohlc(ax1, ohlc_data, width=0.6, colorup='r', colordown='g', alpha=0.8)
-        
-        # 设置x轴格式
-        ax1.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
-        plt.xticks(rotation=45)
-        
         # 执行缠论分析
         try:
             from chanlib import analyze_chan
-            chan_df = analyze_chan(df, add_signals=True)  # 确保添加买卖信号
+            # 从chanlib导入买卖信号功能
+            from chanlib.signals import add_trading_signals
+            
+            # 首先执行基础缠论分析
+            chan_df = analyze_chan(df)
+            
+            # 然后添加买卖信号
+            chan_df = add_trading_signals(chan_df)
+            
+            # 生成分析图表
+            plt.figure(figsize=(12, 6))
+            
+            # 绘制简洁线图而不是K线图
+            plt.plot(pd.to_datetime(df['date']), df['close'], color='white', linewidth=1.5)
+            plt.title(f"{stock_name} ({stock_code}) 缠论分析图", color='white')
+            
+            # 设置灰色背景
+            ax = plt.gca()
+            ax.set_facecolor('#666666')
+            plt.gcf().set_facecolor('#666666')
+            
+            # 设置y轴范围，留出一点边距
+            min_price = df['low'].min() * 0.99
+            max_price = df['high'].max() * 1.01
+            plt.ylim(min_price, max_price)
+            
+            # 设置轴标签
+            plt.xlabel('Date', color='white')
+            plt.ylabel('Price', color='white')
+            
+            # 修改刻度颜色
+            ax.tick_params(axis='x', colors='white')
+            ax.tick_params(axis='y', colors='white')
+            
+            # 格式化x轴日期
+            date_format = mdates.DateFormatter('%Y/%m')
+            ax.xaxis.set_major_formatter(date_format)
+            ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
+            
+            # 绘制网格线
+            ax.grid(True, color='#777777', linestyle='-', linewidth=0.5, alpha=0.5)
+            
+            # 绘制分型点
+            tops = chan_df[chan_df['fractal_mark'] == 1]
+            bottoms = chan_df[chan_df['fractal_mark'] == -1]
+            
+            # 标记顶分型和底分型，使用较小的标记点使图表更清晰
+            if not tops.empty:
+                plt.scatter(pd.to_datetime(tops['date']), tops['high'], marker='^', color='red', s=30, alpha=0.7)
+            if not bottoms.empty:
+                plt.scatter(pd.to_datetime(bottoms['date']), bottoms['low'], marker='v', color='green', s=30, alpha=0.7)
+            
+            # 绘制笔，使用细线
+            strokes = chan_df[chan_df['stroke_mark'] == True]
+            if len(strokes) > 1:
+                for i in range(len(strokes) - 1):
+                    start_date = pd.to_datetime(strokes.iloc[i]['date'])
+                    end_date = pd.to_datetime(strokes.iloc[i+1]['date'])
+                    start_val = strokes.iloc[i]['high'] if strokes.iloc[i]['stroke_type'] == 'top' else strokes.iloc[i]['low']
+                    end_val = strokes.iloc[i+1]['high'] if strokes.iloc[i+1]['stroke_type'] == 'top' else strokes.iloc[i+1]['low']
+                    plt.plot([start_date, end_date], [start_val, end_val], 'b-', linewidth=1, alpha=0.7)
+            
+            # 简化买入卖出信号，只显示点，不显示标签
+            if 'buy_signal' in chan_df.columns:
+                buy_signals = chan_df[chan_df['buy_signal'] > 0]
+                if not buy_signals.empty:
+                    plt.scatter(pd.to_datetime(buy_signals['date']), buy_signals['low'], marker='^', color='lime', s=50, alpha=0.9)
+            
+            if 'sell_signal' in chan_df.columns:
+                sell_signals = chan_df[chan_df['sell_signal'] > 0]
+                if not sell_signals.empty:
+                    plt.scatter(pd.to_datetime(sell_signals['date']), sell_signals['high'], marker='v', color='red', s=50, alpha=0.9)
+            
+            # 格式化x轴日期
+            plt.xticks(rotation=45)
+            plt.tight_layout()
             
             # 统计分析结果
             stats = {
@@ -742,87 +801,115 @@ def chan_analysis():
                 "卖出信号数量": len(chan_df[chan_df['sell_signal'] > 0]) if 'sell_signal' in chan_df.columns else 0
             }
             
-            # 生成分析图表
-            plt.figure(figsize=(12, 8))
+            # 收集买卖信号
+            buy_signals = []
+            sell_signals = []
             
-            # 绘制K线图
-            ax1 = plt.subplot2grid((6, 1), (0, 0), rowspan=4, colspan=1)
-            ax1.set_title(f"{stock_name} ({stock_code}) 缠论分析图")
+            # 收集买入信号
+            if 'buy_signal' in chan_df.columns:
+                for i, row in chan_df[chan_df['buy_signal'] > 0].iterrows():
+                    buy_signals.append({
+                        'date': row['date'] if 'date' in row else str(i),
+                        'type': int(row['buy_signal']),
+                        'price': float(row['low']),
+                        'index': int(i)
+                    })
             
-            # 绘制K线
-            candlestick_ohlc(ax1, 
-                            df[['date', 'open', 'high', 'low', 'close']].values,
-                            width=0.6, colorup='r', colordown='g', alpha=0.8)
+            # 收集卖出信号
+            if 'sell_signal' in chan_df.columns:
+                for i, row in chan_df[chan_df['sell_signal'] > 0].iterrows():
+                    sell_signals.append({
+                        'date': row['date'] if 'date' in row else str(i),
+                        'type': int(row['sell_signal']),
+                        'price': float(row['high']),
+                        'index': int(i)
+                    })
             
-            # 绘制分型
-            tops = chan_df[chan_df['fractal_mark'] == 1]
-            bottoms = chan_df[chan_df['fractal_mark'] == -1]
-            if not tops.empty:
-                ax1.scatter(range(len(chan_df)), tops['high'], marker='^', color='red', s=100, label='顶分型')
-            if not bottoms.empty:
-                ax1.scatter(range(len(chan_df)), bottoms['low'], marker='v', color='green', s=100, label='底分型')
+            # 准备前端需要的数据
+            # 提取分型数据
+            peaks = []
+            for i, row in tops.iterrows():
+                peaks.append({
+                    'date': row['date'] if 'date' in row else str(i),
+                    'price': float(row['high']),
+                    'index': int(i)
+                })
+                
+            troughs = []
+            for i, row in bottoms.iterrows():
+                troughs.append({
+                    'date': row['date'] if 'date' in row else str(i),
+                    'price': float(row['low']),
+                    'index': int(i)
+                })
             
-            # 绘制笔
-            strokes = chan_df[chan_df['stroke_mark'] == True]
+            # 提取中枢数据
+            price_centers = []
+            if 'hub_mark' in chan_df.columns and 'zg' in chan_df.columns and 'zd' in chan_df.columns:
+                hubs = chan_df[chan_df['hub_mark'] > 0]
+                hub_ids = hubs['hub_mark'].unique()
+                
+                for hub_id in hub_ids:
+                    hub_data = hubs[hubs['hub_mark'] == hub_id]
+                    if not hub_data.empty:
+                        start_date = hub_data.iloc[0]['date'] if 'date' in hub_data else str(hub_data.index[0])
+                        end_date = hub_data.iloc[-1]['date'] if 'date' in hub_data else str(hub_data.index[-1])
+                        
+                        # 获取中枢的上下边界
+                        zg = hub_data['zg'].iloc[0] if 'zg' in hub_data else hub_data['high'].max()
+                        zd = hub_data['zd'].iloc[0] if 'zd' in hub_data else hub_data['low'].min()
+                        
+                        price_centers.append({
+                            'start': start_date,
+                            'end': end_date,
+                            'zg': float(zg),
+                            'zd': float(zd)
+                        })
+            
+            # 提取绘制笔的数据
+            strokes_data = []
             if len(strokes) > 1:
                 for i in range(len(strokes) - 1):
-                    start_idx = chan_df.index.get_loc(strokes.index[i])
-                    end_idx = chan_df.index.get_loc(strokes.index[i+1])
-                    start_val = strokes.iloc[i]['high'] if strokes.iloc[i]['stroke_type'] == 'top' else strokes.iloc[i]['low']
-                    end_val = strokes.iloc[i+1]['high'] if strokes.iloc[i+1]['stroke_type'] == 'top' else strokes.iloc[i+1]['low']
-                    ax1.plot([start_idx, end_idx], [start_val, end_val], 'b-', linewidth=2)
-            
-            # 绘制买入卖出信号
-            if 'buy_signal' in chan_df.columns:
-                buy_signals = chan_df[chan_df['buy_signal'] > 0]
-                if not buy_signals.empty:
-                    for i, row in buy_signals.iterrows():
-                        idx = chan_df.index.get_loc(i)
-                        signal_type = int(row['buy_signal'])
-                        ax1.annotate(f'B{signal_type}', 
-                                    xy=(idx, row['low'] * 0.99),
-                                    xytext=(idx, row['low'] * 0.95),
-                                    arrowprops=dict(facecolor='green', shrink=0.05),
-                                    horizontalalignment='center',
-                                    verticalalignment='top',
-                                    color='green',
-                                    fontweight='bold')
+                    start_date = strokes.iloc[i]['date'] if 'date' in strokes else str(strokes.index[i])
+                    end_date = strokes.iloc[i+1]['date'] if 'date' in strokes else str(strokes.index[i+1])
+                    start_val = float(strokes.iloc[i]['high'] if strokes.iloc[i]['stroke_type'] == 'top' else strokes.iloc[i]['low'])
+                    end_val = float(strokes.iloc[i+1]['high'] if strokes.iloc[i+1]['stroke_type'] == 'top' else strokes.iloc[i+1]['low'])
                     
-            if 'sell_signal' in chan_df.columns:
-                sell_signals = chan_df[chan_df['sell_signal'] > 0]
-                if not sell_signals.empty:
-                    for i, row in sell_signals.iterrows():
-                        idx = chan_df.index.get_loc(i)
-                        signal_type = int(row['sell_signal'])
-                        ax1.annotate(f'S{signal_type}', 
-                                    xy=(idx, row['high'] * 1.01),
-                                    xytext=(idx, row['high'] * 1.05),
-                                    arrowprops=dict(facecolor='red', shrink=0.05),
-                                    horizontalalignment='center',
-                                    verticalalignment='bottom',
-                                    color='red',
-                                    fontweight='bold')
+                    strokes_data.append({
+                        'start_date': start_date,
+                        'end_date': end_date,
+                        'start_val': start_val,
+                        'end_val': end_val
+                    })
             
-            # 格式化x轴日期
-            ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-            plt.xticks(rotation=45)
-            ax1.grid(True)
-            plt.tight_layout()
-            
-            # 保存图表为base64字符串而不是文件
+            # 保存图表为base64字符串
             img_base64 = save_plot_to_base64(plt)
             plt.close()
             
             # 准备显示的数据
-            global stock_data
-            stock_data = df.to_dict('records')
+            stock_data_list = []
+            for i, row in df.iterrows():
+                stock_data_list.append({
+                    'date': row['date'] if 'date' in row else str(i),
+                    'open': float(row['open']),
+                    'high': float(row['high']),
+                    'low': float(row['low']),
+                    'close': float(row['close']),
+                    'volume': int(row['volume']) if 'volume' in row else 0
+                })
             
             # 返回分析结果
             return render_template('index.html', 
-                                  stock_data=stock_data, 
+                                  stock_data=stock_data_list, 
                                   stock_name=stock_name,
                                   stock_code=stock_code,
                                   stats=stats,
+                                  buy_signals=buy_signals,
+                                  sell_signals=sell_signals,
+                                  peaks=peaks,
+                                  troughs=troughs,
+                                  price_centers=price_centers,
+                                  strokes=strokes_data,
                                   chart_data=img_base64)
         
         except Exception as e:

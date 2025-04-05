@@ -2,31 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
 .Python
-.env
-.venv
 env/
-venv/
-ENV/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Project specific
-data_cache/
-*.log
-*.csv
-static/images/*
-!static/images/.gitkeep
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Build
 build/
 develop-eggs/
 dist/
@@ -40,4 +18,33 @@ sdist/
 var/
 *.egg-info/
 .installed.cfg
-*.egg 
+*.egg
+
+# 虚拟环境
+.venv
+venv/
+ENV/
+
+# 日志与缓存
+*.log
+.cache
+.pytest_cache/
+
+# IDE 相关
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 其他
+.DS_Store
+.env
+.flaskenv
+instance/
+.webassets-cache
+
+# Project specific
+data_cache/
+*.csv
+static/images/*
+!static/images/.gitkeep 
