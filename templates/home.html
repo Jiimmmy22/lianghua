@@ -1,0 +1,181 @@
+{% extends "layout.html" %}
+
+{% block title %}股票数据分析 - 首页{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stock-info {
+        background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .stock-price {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .price-change {
+        font-size: 1.2rem;
+    }
+
+    .positive {
+        color: #00ff00;
+    }
+
+    .negative {
+        color: #ff0000;
+    }
+
+    .indicator-card {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: transform 0.2s;
+    }
+
+    .indicator-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .indicator-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .indicator-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    #kline-chart, #volume-chart, #technical-chart {
+        height: 400px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form id="stock-form" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="stock-code" class="form-label">股票代码</label>
+                        <input type="text" class="form-control" id="stock-code" placeholder="例如：000001或600519">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="start-date" class="form-label">开始日期</label>
+                        <input type="date" class="form-control" id="start-date">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="end-date" class="form-label">结束日期</label>
+                        <input type="date" class="form-control" id="end-date">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">分析</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="loading" class="loading text-center">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">加载中...</span>
+    </div>
+    <p class="mt-2">正在获取数据，请稍候...</p>
+</div>
+
+<div id="error-message" class="alert alert-danger" style="display: none;"></div>
+
+<div id="stock-data" style="display: none;">
+    <div class="stock-info mb-4">
+        <div class="row">
+            <div class="col-md-6">
+                <h2 id="stock-name">--</h2>
+                <div class="stock-price" id="current-price">--</div>
+                <div class="price-change" id="price-change">--</div>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="indicator-card">
+                            <div class="indicator-value" id="volume">--</div>
+                            <div class="indicator-label">成交量</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="indicator-card">
+                            <div class="indicator-value" id="turnover">--</div>
+                            <div class="indicator-label">成交额</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">K线图</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary btn-sm period-btn" data-period="day">日K</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm period-btn" data-period="week">周K</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm period-btn" data-period="month">月K</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="kline-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">成交量</h5>
+                </div>
+                <div class="card-body">
+                    <div id="volume-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">技术指标</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary btn-sm indicator-btn" data-indicator="MACD">MACD</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm indicator-btn" data-indicator="KDJ">KDJ</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm indicator-btn" data-indicator="RSI">RSI</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="technical-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 在这里添加JavaScript代码来处理数据获取和图表展示
+    // 将在下一步实现
+</script>
+{% endblock %}

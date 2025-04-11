@@ -19,6 +19,7 @@ import numpy as np
 from io import BytesIO
 import json
 from matplotlib.dates import date2num, DateFormatter
+from api.stock_data import api
 
 # 导入缠论分析库
 from chanlib import analyze_chan
@@ -602,7 +603,7 @@ def download_stock_data():
 @app.route('/test')
 def test():
     logger.debug("Accessing test route")
-    return render_template('test.html')
+    return render_template('test.html', title="测试页面")
 
 @app.route('/hello')
 def hello():
@@ -934,4 +935,4 @@ if __name__ == '__main__':
             port += 1
 
 # Vercel环境设置
-app.debug = False  # 生产环境禁用调试模式 
+app.debug = False  # 生产环境禁用调试模式
