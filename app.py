@@ -923,16 +923,8 @@ def chan_analysis():
 
 # 修改主程序入口
 if __name__ == '__main__':
-    port = 8087
-    while port <= 8095:
-        try:
-            app.run(host='0.0.0.0', port=port, debug=True)
-            break
-        except OSError as e:
-            if port == 8095:
-                raise e
-            logging.warning(f"Port {port} is in use, trying next port...")
-            port += 1
+    port = int(os.environ.get('PORT', 8088))
+    app.run(host='0.0.0.0', port=port, debug=False)
 
 # Vercel环境设置
 app.debug = False  # 生产环境禁用调试模式

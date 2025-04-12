@@ -482,12 +482,12 @@
                         const strokeLines = strokesData.map(stroke => {
                             return {
                                 name: '笔',
-                                type: 'line',
+                            type: 'line',
                                 data: [
                                     [new Date(stroke.start_date), stroke.start_val],
                                     [new Date(stroke.end_date), stroke.end_val]
                                 ],
-                                lineStyle: {
+                            lineStyle: {
                                     color: '#2a93fc',
                                     width: 1.5
                                 },
@@ -497,20 +497,20 @@
                         });
                         
                         // 图表配置
-                        const option = {
+                const option = {
                             backgroundColor: '#666666',
                             textStyle: {
                                 color: '#ffffff'
                             },
-                            title: {
+                    title: {
                                 text: '{{ stock_name }} ({{ stock_code }})',
                                 left: 'center',
                                 textStyle: {
                                     color: '#ffffff'
                                 }
-                            },
-                            tooltip: {
-                                trigger: 'axis',
+                    },
+                    tooltip: {
+                        trigger: 'axis',
                                 formatter: function(params) {
                                     let tip = '';
                                     for (let i = 0; i < params.length; i++) {
@@ -528,14 +528,14 @@
                                     return tip;
                                 }
                             },
-                            grid: {
+                    grid: {
                                 left: '5%',
                                 right: '5%',
                                 bottom: '10%',
                                 top: '15%',
                                 containLabel: true
-                            },
-                            xAxis: {
+                    },
+                    xAxis: {
                                 type: 'time',
                                 axisLine: {
                                     lineStyle: {
@@ -552,8 +552,8 @@
                                 splitLine: {
                                     show: false
                                 }
-                            },
-                            yAxis: {
+                    },
+                    yAxis: {
                                 type: 'value',
                                 axisLine: {
                                     lineStyle: {
@@ -568,20 +568,20 @@
                                         color: '#777777',
                                         type: 'dashed'
                                     }
-                                }
-                            },
-                            dataZoom: [
-                                {
-                                    type: 'inside',
-                                    start: 0,
-                                    end: 100
-                                },
-                                {
-                                    show: true,
-                                    type: 'slider',
+                        }
+                    },
+                    dataZoom: [
+                        {
+                            type: 'inside',
+                            start: 0,
+                            end: 100
+                        },
+                        {
+                            show: true,
+                            type: 'slider',
                                     bottom: '5px',
                                     height: 20,
-                                    start: 0,
+                            start: 0,
                                     end: 100,
                                     textStyle: {
                                         color: '#ffffff'
@@ -591,10 +591,10 @@
                                     handleStyle: {
                                         color: '#dddddd'
                                     }
-                                }
-                            ],
-                            series: [
-                                {
+                        }
+                    ],
+                    series: [
+                        {
                                     name: '价格',
                                     type: 'line',
                                     data: dates.map((date, i) => [date, prices[i]]),
@@ -642,7 +642,7 @@
                                     type: 'scatter',
                                     symbol: 'triangle-down',
                                     symbolSize: 10,
-                                    itemStyle: {
+                            itemStyle: {
                                         color: 'red'
                                     },
                                     data: sellPoints,
@@ -653,12 +653,12 @@
                         };
                         
                         // 设置图表选项
-                        myChart.setOption(option);
-                        
+                myChart.setOption(option);
+                
                         // 监听窗口大小变化，调整图表尺寸
-                        window.addEventListener('resize', function() {
-                            myChart.resize();
-                        });
+                window.addEventListener('resize', function() {
+                    myChart.resize();
+                });
                         
                         // 绑定重置缩放按钮事件
                         document.getElementById('zoom-reset').addEventListener('click', function() {
