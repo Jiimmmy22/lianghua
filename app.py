@@ -160,212 +160,36 @@ def get_stock_data(stock_code, start_date, end_date):
             logger.warning(f"从缓存加载数据失败: {e}")
     
     try:
-        # 处理不同类型的股票
+        # 使用akshare获取数据
+        df = ak.stock_zh_a_hist(symbol=stock_code, period="daily", start_date=start_date, end_date=end_date, adjust="qfq")
+        if df.empty:
+            raise ValueError("获取到的数据为空")
         
-        # A股 - 通过baostock获取
-        if (stock_code.isdigit() and len(stock_code) == 6) or \
-           (stock_code.startswith('sh') or stock_code.startswith('sz')):
+        # 重命名列
+        df = df.rename(columns={
+            '日期': 'date',
+            '开盘': 'open',
+            '最高': 'high',
+            '最低': 'low',
+            '收盘': 'close',
+            '成交量': 'volume'
+        })
+        
+        # 转换日期格式
+        df['date'] = pd.to_datetime(df['date'])
+        
+        # 缓存数据
+        try:
+            df.to_csv(cache_file, index=False)
+            logger.info(f"数据已缓存: {cache_file}")
+        except Exception as e:
+            logger.warning(f"缓存数据失败: {e}")
             
-            # 移除可能的前缀
-            numeric_code = stock_code
-            if stock_code.startswith('sh') or stock_code.startswith('sz'):
-                numeric_code = stock_code[2:]
-            
-            # 添加正确的前缀
-            if numeric_code.startswith('6'):
-                bs_code = f"sh.{numeric_code}"
-            else:
-                bs_code = f"sz.{numeric_code}"
-                
-            # 使用baostock获取A股数据
-            bs.login()
-            
-            try:
-                rs = bs.query_history_k_data_plus(bs_code,
-                    "date,open,high,low,close,volume",
-                    start_date=start_date, end_date=end_date,
-                    frequency="d", adjustflag="2")
-                
-                data_list = []
-                while (rs.error_code == '0') & rs.next():
-                    data_list.append(rs.get_row_data())
-                
-                bs.logout()
-                
-                if data_list:
-                    df = pd.DataFrame(data_list, columns=rs.fields)
-                    # 转换数据类型
-                    for field in ['open', 'high', 'low', 'close']:
-                        df[field] = pd.to_numeric(df[field])
-                    df['volume'] = pd.to_numeric(df['volume'])
-                    
-                    # 缓存数据
-                    try:
-                        df.to_csv(cache_file, index=False)
-                        logger.info(f"数据已缓存: {cache_file}")
-                    except Exception as e:
-                        logger.warning(f"缓存数据失败: {e}")
-                        
-                    return df
-            except Exception as e:
-                logger.warning(f"使用baostock获取A股数据失败: {e}")
-                bs.logout()
-            
-            # 如果baostock失败，尝试akshare
-            try:
-                if stock_code.startswith('sh') or stock_code.startswith('sz'):
-                    code = stock_code
-                elif numeric_code.startswith('6'):
-                    code = f"sh{numeric_code}"
-                else:
-                    code = f"sz{numeric_code}"
-                    
-                # 使用akshare获取A股数据
-                df = ak.stock_zh_a_hist(symbol=code, start_date=start_date, end_date=end_date, adjust="qfq")
-                if not df.empty:
-                    df.columns = ['date', 'open', 'close', 'high', 'low', 'volume', 'amount', 'amplitude', 'change_pct', 'change', 'turnover']
-                    
-                    # 缓存数据
-                    try:
-                        df.to_csv(cache_file, index=False)
-                        logger.info(f"数据已缓存: {cache_file}")
-                    except Exception as e:
-                        logger.warning(f"缓存数据失败: {e}")
-                        
-                    return df
-            except Exception as e:
-                logger.warning(f"使用akshare获取A股数据失败: {e}")
-        
-        # 指数 - 使用akshare获取
-        elif stock_code.startswith('i') and stock_code[1:].isdigit():
-            try:
-                index_code = stock_code[1:]
-                # 处理上证指数
-                if index_code == '000001':
-                    index_code = 'sh000001'
-                # 处理深证成指
-                elif index_code == '399001':
-                    index_code = 'sz399001'
-                # 处理其他指数
-                elif index_code.startswith('0'):
-                    index_code = f"sh{index_code}"
-                else:
-                    index_code = f"sz{index_code}"
-                
-                # 尝试获取指数数据
-                df = ak.stock_zh_index_daily(symbol=index_code)
-                if not df.empty:
-                    df = df[(df['date'] >= start_date) & (df['date'] <= end_date)]
-                    df = df.reset_index(drop=True)
-                    
-                    # 缓存数据
-                    try:
-                        df.to_csv(cache_file, index=False)
-                        logger.info(f"数据已缓存: {cache_file}")
-                    except Exception as e:
-                        logger.warning(f"缓存数据失败: {e}")
-                        
-                    if not df.empty:
-                        return df
-            except Exception as e:
-                logger.warning(f"使用akshare获取指数数据失败: {e}")
-                
-            # 如果akshare失败，尝试使用本地样本数据
-            try:
-                sample_file = os.path.join('sample_data', f"index_{index_code[-6:]}.csv")
-                if os.path.exists(sample_file):
-                    df = pd.read_csv(sample_file)
-                    # 筛选日期范围
-                    df = df[(df['date'] >= start_date) & (df['date'] <= end_date)]
-                    if not df.empty:
-                        logger.info(f"使用样本数据: {sample_file}")
-                        return df
-            except Exception as e:
-                logger.warning(f"使用样本数据失败: {e}")
-        
-        # ETF基金 - 通过akshare获取
-        elif stock_code.startswith('e') and stock_code[1:].isdigit():
-            try:
-                etf_code = stock_code[1:]
-                if etf_code.startswith('5') or etf_code.startswith('1'):
-                    etf_code = f"sh{etf_code}"
-                else:
-                    etf_code = f"sz{etf_code}"
-                
-                df = ak.fund_etf_hist_em(symbol=etf_code, start_date=start_date, end_date=end_date, adjust="qfq")
-                if not df.empty:
-                    # 标准化列名
-                    df.columns = ['date', 'open', 'close', 'high', 'low', 'volume', 'amount', 'amplitude', 'change_pct', 'change', 'turnover']
-                    
-                    # 缓存数据
-                    try:
-                        df.to_csv(cache_file, index=False)
-                        logger.info(f"数据已缓存: {cache_file}")
-                    except Exception as e:
-                        logger.warning(f"缓存数据失败: {e}")
-                        
-                    return df
-            except Exception as e:
-                logger.warning(f"使用akshare获取ETF数据失败: {e}")
-                
-            # 如果akshare失败，尝试使用本地样本数据
-            try:
-                sample_file = os.path.join('sample_data', f"etf_{etf_code[-6:]}.csv")
-                if os.path.exists(sample_file):
-                    df = pd.read_csv(sample_file)
-                    # 筛选日期范围
-                    df = df[(df['date'] >= start_date) & (df['date'] <= end_date)]
-                    if not df.empty:
-                        logger.info(f"使用样本数据: {sample_file}")
-                        return df
-            except Exception as e:
-                logger.warning(f"使用样本数据失败: {e}")
-        
-        # 港股 - 通过akshare获取
-        elif (stock_code.isdigit() and len(stock_code) <= 5) or stock_code.startswith('hk'):
-            try:
-                if stock_code.startswith('hk'):
-                    hk_code = stock_code[2:].zfill(5)
-                else:
-                    hk_code = stock_code.zfill(5)
-                
-                df = ak.stock_hk_daily(symbol=hk_code, adjust="qfq")
-                if not df.empty:
-                    df = df[(df.index >= start_date) & (df.index <= end_date)]
-                    df = df.reset_index()
-                    df.columns = ['date', 'open', 'high', 'low', 'close', 'volume', 'amount', 'change_pct']
-                    
-                    # 缓存数据
-                    try:
-                        df.to_csv(cache_file, index=False)
-                        logger.info(f"数据已缓存: {cache_file}")
-                    except Exception as e:
-                        logger.warning(f"缓存数据失败: {e}")
-                        
-                    return df
-            except Exception as e:
-                logger.warning(f"使用akshare获取港股数据失败: {e}")
-        
-        # 尝试从样本数据获取
-        sample_file = os.path.join('sample_data', f"{stock_code.replace('.', '_')}.csv")
-        if os.path.exists(sample_file):
-            try:
-                df = pd.read_csv(sample_file)
-                # 筛选日期范围
-                if 'date' in df.columns:
-                    df = df[(df['date'] >= start_date) & (df['date'] <= end_date)]
-                if not df.empty:
-                    logger.info(f"使用样本数据: {sample_file}")
-                    return df
-            except Exception as e:
-                logger.warning(f"使用样本数据失败: {e}")
-                
-        # 所有其他情况，尝试作为美股通过yfinance获取
-        return get_yfinance_data(stock_code, start_date, end_date)
-                
+        return df
+    
     except Exception as e:
-        logger.error(f"获取股票数据失败: {str(e)}", exc_info=True)
-        raise Exception(f"获取股票数据失败: {str(e)}")
+        logger.error(f"获取股票数据失败: {str(e)}")
+        raise
 
 def get_yfinance_data(symbol, start_date, end_date):
     """使用yfinance获取数据，带重试和错误处理"""

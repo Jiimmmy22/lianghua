@@ -2,7 +2,6 @@ flask==2.0.1
 pandas==1.5.3
 numpy==1.24.3
 mplfinance==0.12.9b7
-ta-lib==0.4.24
 akshare==1.16.76
 requests==2.32.3
 python-dateutil==2.9.0
