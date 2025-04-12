@@ -1,8 +1,8 @@
-yfinance>=0.2.31
-pandas==1.5.3
-matplotlib==3.7.1
-baostock>=0.8.8
-akshare>=1.10.0
-flask>=2.0.0
-requests>=2.31.0
-numpy==1.23.5
+
+flask==2.0.1
+requests==2.31.0
+pandas==2.0.3
+numpy==1.24.3
+yfinance==0.2.28
+baostock==0.8.5
+akshare==1.10.0
